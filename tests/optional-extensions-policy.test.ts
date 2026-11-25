@@ -28,11 +28,11 @@ test("writeOptionalExtensionsPolicy persists normalized selection and handles ma
 	const home = mkdtempSync(join(tmpdir(), "opt-ext-write-"));
 	t.after(() => rmSync(home, { recursive: true, force: true }));
 
-	const file = writeOptionalExtensionsPolicy(["gentle-todo", "codegraph-tools", "gentle-todo"], {
+	const file = writeOptionalExtensionsPolicy(["gentle-todo", "gentle-music", "gentle-todo"], {
 		gentlePiConfigHome: home,
 	});
 	const resolved = resolveOptionalExtensionsPolicy({ gentlePiConfigHome: home });
-	assert.deepEqual(resolved.enabled, ["gentle-todo", "codegraph-tools"]);
+	assert.deepEqual(resolved.enabled, ["gentle-todo", "gentle-music"]);
 	assert.equal(resolved.source, "global_file");
 	assert.equal(resolved.malformed, false);
 	assert.equal(isOptionalExtensionEnabled("gentle-todo", { gentlePiConfigHome: home }), true);

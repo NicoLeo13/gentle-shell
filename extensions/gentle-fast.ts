@@ -3,11 +3,18 @@ import { readSessionProfileBinding } from "../lib/session-profile-binding.ts";
 import { readSessionProfileAuthority } from "../lib/session-profile-authority.ts";
 import { gentlePiConfigHome } from "../lib/agent-home.ts";
 import { isOptionalExtensionEnabled } from "../lib/optional-extensions-policy.ts";
-import { freezeSessionProfileAtStartup, readFrozenDefaultOrchestrator } from "../lib/session-profile-freeze.ts";
+import { freezeSessionProfileAtStartup, profileFollowEnabled, readFrozenDefaultOrchestrator } from "../lib/session-profile-freeze.ts";
 import { isServiceTier } from "../lib/model-routing-authority.ts";
 import { applyOpenAITier, CHILD_TIER_ENV, PROFILE_TIER_EVENT } from "../lib/openai-fast-tier.ts";
 
 type Selection = "standard" | "fast" | undefined;
+
+// gentle-shell#1064 A3 S4 reading side: a `follow` session ignores the startup
+// record and resolves the current defaults, exactly as `resolveSessionProfile`
+// does. An explicit choice is not a startup state and still wins.
+function ignoredStartupBinding(binding: { origin: string }): boolean {
+	return binding.origin !== "user" && profileFollowEnabled();
+}
 
 export default function (pi: ExtensionAPI) {
 	if (!isOptionalExtensionEnabled("gentle-fast")) return;
@@ -26,7 +33,7 @@ export default function (pi: ExtensionAPI) {
 			// later default into a session that already froze its startup choice.
 			freezeSessionProfileAtStartup({ sessionId, cwd, configHome: gentlePiConfigHome() });
 		}
-		const entry = binding ? binding.modelProfiles.orchestrator
+		const entry = binding && !ignoredStartupBinding(binding) ? binding.modelProfiles.orchestrator
 			: authority && !authority.available ? undefined : readFrozenDefaultOrchestrator(sessionId);
 		const matches = entry?.model === `${ctx.model?.provider}/${ctx.model?.id}`;
 		let child: { tier?: unknown; model?: unknown } | undefined;

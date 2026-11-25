@@ -7,7 +7,6 @@ export const OPTIONAL_EXTENSION_IDS = [
 	"gentle-design",
 	"gentle-guide",
 	"gentle-todo",
-	"codegraph-tools",
 	"gentle-music",
 	"gentle-fast",
 	"gentle-voice",
